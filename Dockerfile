@@ -18,7 +18,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Build the Python API
-FROM python:3.13 AS backend-builder
+FROM python:3.13-slim AS backend-builder
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
@@ -40,7 +40,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable
 
 # Stage 3: Production runtime
-FROM python:3.13 AS runtime
+FROM python:3.13-slim AS runtime
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libusb && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN groupadd -g 1000 appuser && \
