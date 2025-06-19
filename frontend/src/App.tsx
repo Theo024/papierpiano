@@ -63,7 +63,7 @@ function App() {
     <div className="h-svh w-full max-w-lg mx-auto flex flex-col gap-3 p-6">
       <h1 className="font-medium">papierpiano</h1>
       <Textarea
-        className="grow"
+        className="grow resize-none"
         placeholder="Tapez votre texte ici."
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -80,6 +80,7 @@ function App() {
           onClick={handleCut}
           disabled={isCutting || isLoading}
           variant="outline"
+          className="px-6"
         >
           {isCutting ? "Coupe..." : "Couper"}
         </Button>
