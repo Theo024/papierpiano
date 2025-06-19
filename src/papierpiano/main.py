@@ -35,7 +35,6 @@ class PrintCommand:
 
 
 @app.post("/cut")
-@validate(json=PrintCommand)
 async def cut_handler(request: Request) -> HTTPResponse:
     request.app.shared_ctx.print_queue.put(PrinterCommand(CommandType.CUT))
     return json({"message": "Cutted"})

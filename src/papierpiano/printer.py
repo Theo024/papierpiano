@@ -3,11 +3,13 @@ from multiprocessing import Queue
 
 from sanic.log import LOGGING_CONFIG_DEFAULTS, logger
 
+from papierpiano.model import CommandType, PrinterCommand
+
 
 def start_printer(print_queue: Queue):
     printer = None
     try:
-        logging.config.dictConfig(LOGGING_CONFIG_DEFAULTS)
+        logging.config.dictConfig(LOGGING_CONFIG_DEFAULTS)  # type: ignore
         logger.info("Initializing printer")
 
         from escpos.printer import Usb
@@ -17,10 +19,15 @@ def start_printer(print_queue: Queue):
         logger.info("Printer initialized")
 
         while True:
-            text = print_queue.get()
-            logger.info(f"Printing: {text}")
-            printer.text(text)
-
+            command: PrinterCommand = print_queue.get()
+            if command.type == CommandType.CUT:
+                logger.info("Cutting")
+                printer.cut()
+            elif command.type == CommandType.TEXT and command.text is not None:
+                logger.info(f"Printing: {command.text}")
+                printer.text(command.text)
+            else:
+                logger.error(f"Unknow command: {command}")
     except KeyboardInterrupt:
         logger.info("Stopping printer")
         if printer is not None:
