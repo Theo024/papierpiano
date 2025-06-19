@@ -1,0 +1,19 @@
+[project]
+name = "papierpiano"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Théo Lévesque", email = "theo.levesque.024@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "python-escpos[usb]>=3.1",
+    "sanic>=25.3.0",
+    "sanic-ext>=24.12.0",
+    "tracerite==1.1.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
