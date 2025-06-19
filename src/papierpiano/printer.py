@@ -3,7 +3,7 @@ from multiprocessing import Queue
 
 from sanic.log import LOGGING_CONFIG_DEFAULTS, logger
 
-from papierpiano.model import CommandType, PrinterCommand
+from papierpiano.model import CutCommand, PrintQRCodeCommand, PrintTextCommand
 
 
 def start_printer(print_queue: Queue):
@@ -20,15 +20,27 @@ def start_printer(print_queue: Queue):
         logger.info("Printer initialized")
 
         while True:
-            command: PrinterCommand = print_queue.get()
-            if command.type == CommandType.CUT:
-                logger.info("Cutting")
-                printer.cut()
-            elif command.type == CommandType.TEXT and command.text is not None:
-                logger.info(f"Printing: {command.text}")
-                printer.text(command.text)
-            else:
-                logger.error(f"Unknow command: {command}")
+            command = print_queue.get()
+
+            match command:
+                case CutCommand():
+                    logger.info("Cutting")
+                    printer.cut()
+
+                case PrintTextCommand(text, cut):
+                    logger.info(f"Printing: {text}")
+                    printer.text(text)
+                    if cut:
+                        printer.cut()
+
+                case PrintQRCodeCommand(content, size):
+                    logger.info(f"Printing QRCode: {content}")
+                    printer.set(align="center")
+                    printer.qr(content, size=size, native=True)
+
+                case _:
+                    logger.error(f"Unknow command: {command}")
+
     except KeyboardInterrupt:
         logger.info("Stopping printer")
 

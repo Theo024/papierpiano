@@ -1,14 +1,22 @@
 from dataclasses import dataclass
-from enum import StrEnum, auto
-from typing import Optional
+from typing import TypeAlias
 
 
-class CommandType(StrEnum):
-    CUT = auto()
-    TEXT = auto()
+@dataclass(frozen=True)
+class CutCommand:
+    pass
 
 
-@dataclass
-class PrinterCommand:
-    type: CommandType
-    text: Optional[str] = None
+@dataclass(frozen=True)
+class PrintTextCommand:
+    text: str
+    cut: bool
+
+
+@dataclass(frozen=True)
+class PrintQRCodeCommand:
+    content: str
+    size: int
+
+
+PrinterCommand: TypeAlias = CutCommand | PrintTextCommand | PrintQRCodeCommand
