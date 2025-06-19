@@ -43,7 +43,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:3.13-slim AS runtime
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libusb && \
+    apt-get install -y --no-install-recommends libusb-1.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
