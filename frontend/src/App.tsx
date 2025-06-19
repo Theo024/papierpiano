@@ -13,7 +13,7 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/print", {
+      const response = await fetch("/api/print", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,7 +39,7 @@ function App() {
     setIsCutting(true);
 
     try {
-      const response = await fetch("http://localhost:8000/cut", {
+      const response = await fetch("/api/cut", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

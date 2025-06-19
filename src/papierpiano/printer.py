@@ -7,9 +7,10 @@ from papierpiano.model import CommandType, PrinterCommand
 
 
 def start_printer(print_queue: Queue):
+    logging.config.dictConfig(LOGGING_CONFIG_DEFAULTS)  # type: ignore
+
     printer = None
     try:
-        logging.config.dictConfig(LOGGING_CONFIG_DEFAULTS)  # type: ignore
         logger.info("Initializing printer")
 
         from escpos.printer import Usb
@@ -30,7 +31,9 @@ def start_printer(print_queue: Queue):
                 logger.error(f"Unknow command: {command}")
     except KeyboardInterrupt:
         logger.info("Stopping printer")
+
         if printer is not None:
             printer.close()
         print_queue.close()
+
         logger.info("Printer stopped")
