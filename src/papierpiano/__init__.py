@@ -33,7 +33,7 @@ class QRCodeBody:
 
 @app.post("/api/cut")
 async def cut_handler(request: Request) -> HTTPResponse:
-    printer = request.ctx.printer
+    printer = request.app.ctx.printer
     printer.cut()
 
     return json({"message": "Cutted"})
@@ -43,7 +43,7 @@ async def cut_handler(request: Request) -> HTTPResponse:
 @openapi.definition(body={"application/json": PrintBody})
 @validate(json=PrintBody)
 async def print_handler(request: Request, body: PrintBody) -> HTTPResponse:
-    printer = request.ctx.printer
+    printer = request.app.ctx.printer
     printer.text(body.text)
     if body.cut:
         printer.cut()
@@ -55,7 +55,7 @@ async def print_handler(request: Request, body: PrintBody) -> HTTPResponse:
 @openapi.definition(body={"application/json": QRCodeBody})
 @validate(json=QRCodeBody)
 async def qrcode_handler(request: Request, body: QRCodeBody) -> HTTPResponse:
-    printer = request.ctx.printer
+    printer = request.app.ctx.printer
     printer.set(align="center")
     printer.qr(body.content, size=body.size, native=True)
 
