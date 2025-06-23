@@ -42,10 +42,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Stage 3: Production runtime
 FROM python:3.13-slim AS runtime
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libusb-1.0-0 && \
-    rm -rf /var/lib/apt/lists/*
-
 # Create non-root user
 RUN groupadd -g 1000 appuser && \
     useradd -r -u 1000 -g appuser appuser
@@ -68,9 +64,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Health check
-# HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-#     CMD curl -f http://localhost:8000/health || exit 1
-
 # Run the application
-CMD ["sanic", "papierpiano.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["sanic", "papierpiano:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
