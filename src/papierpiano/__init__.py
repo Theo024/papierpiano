@@ -14,7 +14,7 @@ app.config.PRINTER_PORT = os.environ["PRINTER_PORT"]
 async def attach_printer(app, _):
     app.ctx.printer = Network(
         app.config.PRINTER_HOST,
-        app.config.PRINTER_PORT,
+        int(app.config.PRINTER_PORT),
         profile="TM-T20II",
     )
 
