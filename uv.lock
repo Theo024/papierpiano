@@ -121,18 +121,16 @@ name = "papierpiano"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "python-escpos", extra = ["usb"] },
+    { name = "python-escpos" },
     { name = "sanic" },
     { name = "sanic-ext" },
-    { name = "tracerite" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "python-escpos", extras = ["usb"], specifier = ">=3.1" },
+    { name = "python-escpos", specifier = ">=3.1" },
     { name = "sanic", specifier = ">=25.3.0" },
     { name = "sanic-ext", specifier = ">=24.12.0" },
-    { name = "tracerite", specifier = "==1.1.1" },
 ]
 
 [[package]]
@@ -192,20 +190,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b5/e8/dbcaca6c9db8d133e3a2fc36982f20bb0bdc9bdc9e04a540b231dd75b2d1/python-escpos-3.1.tar.gz", hash = "sha256:31240cdd43a6d3371c2c536f8dec02f31bf68ee967cd2edb255a94cf67295ac0", size = 199540, upload-time = "2023-12-17T22:06:03.643Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5e/def5f834b900d98c4c6477469b4e0cd1147d7158ddffcddac6904ec53f6e/python_escpos-3.1-py3-none-any.whl", hash = "sha256:d9aec8c50b106ca83aaf0781e2bd38a02c82ab206cb6d673241db5252438c73e", size = 69350, upload-time = "2023-12-17T22:06:01.048Z" },
-]
-
-[package.optional-dependencies]
-usb = [
-    { name = "pyusb" },
-]
-
-[[package]]
-name = "pyusb"
-version = "1.3.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/00/6b/ce3727395e52b7b76dfcf0c665e37d223b680b9becc60710d4bc08b7b7cb/pyusb-1.3.1.tar.gz", hash = "sha256:3af070b607467c1c164f49d5b0caabe8ac78dbed9298d703a8dbf9df4052d17e", size = 77281, upload-time = "2025-01-08T23:45:01.866Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/28/b8/27e6312e86408a44fe16bd28ee12dd98608b39f7e7e57884a24e8f29b573/pyusb-1.3.1-py3-none-any.whl", hash = "sha256:bf9b754557af4717fe80c2b07cc2b923a9151f5c08d17bdb5345dac09d6a0430", size = 58465, upload-time = "2025-01-08T23:45:00.029Z" },
 ]
 
 [[package]]
@@ -300,14 +284,14 @@ wheels = [
 
 [[package]]
 name = "tracerite"
-version = "1.1.1"
+version = "1.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "html5tagger" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/82/9372199dd72b02e8f3cf3143096ed453f010668a8e2cbe9cd59b116da3de/tracerite-1.1.1.tar.gz", hash = "sha256:6400a35a187747189e4bb8d4a8e471bd86d14dbdcc94bcad23f4eda023f41356", size = 269462, upload-time = "2023-11-12T07:36:30.897Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/b2/37b825b881f23bc56384c3142214ccbe5d9de7e7c5fe3d155fa032738b98/tracerite-1.1.3.tar.gz", hash = "sha256:119fc006f240aa03fffb41cf99cf82fda5c0449c7d4b6fe42c6340403578b31e", size = 269646, upload-time = "2025-06-19T17:47:42.289Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4e/71/127927fdd41dd577fd946c319cf9c012366f3ff9f048d0b0689dc72819ef/tracerite-1.1.1-py3-none-any.whl", hash = "sha256:3a787a9ecb1a136ea9ce17e6328e414ec414a4f644130af4e1e330bec2dece29", size = 12301, upload-time = "2023-11-12T07:36:28.503Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/bf/c65d36ec5a93048dd55b3247be26059970daad72263e35ecace2f3188b2c/tracerite-1.1.3-py3-none-any.whl", hash = "sha256:811d8e2e0fb563b77340eebe2e9f7b324acfe01e09ea58db8bcaecb24327c823", size = 12422, upload-time = "2025-06-19T17:47:40.173Z" },
 ]
 
 [[package]]
