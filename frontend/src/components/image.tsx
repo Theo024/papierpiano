@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, type FormEvent } from "react";
+import { toast } from "sonner";
 
 function Image() {
   const [open, setOpen] = useState(false);
@@ -25,7 +26,10 @@ function Image() {
   const handleImage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!file) return;
+    if (!file) {
+      toast.error("Veuillez sélectionner une image à imprimer");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);
@@ -39,11 +43,21 @@ function Image() {
       if (response.ok) {
         setFile(null);
         setOpen(false);
+        toast.success("Image imprimée avec succès");
       } else {
-        console.error("Image request failed:", response.status);
+        const errorData = await response.json().catch(() => null);
+        toast.error(
+          errorData?.message ||
+            `Erreur lors de l'impression de l'image (${response.status}): ${response.statusText}`
+        );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Image request error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Erreur de connexion au serveur";
+      toast.error(errorMessage);
     }
   };
 

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useState, type FormEvent } from "react";
+import { toast } from "sonner";
 
 function QRCode() {
   const [open, setOpen] = useState(false);
@@ -21,7 +22,10 @@ function QRCode() {
   const handleQRCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!content.trim()) return;
+    if (!content.trim()) {
+      toast.error("Veuillez saisir du contenu pour le QRCode");
+      return;
+    }
 
     try {
       const response = await fetch("/api/qrcode", {
@@ -38,11 +42,21 @@ function QRCode() {
       if (response.ok) {
         setContent("");
         setOpen(false);
+        toast.success("QRCode imprimé avec succès");
       } else {
-        console.error("QRCode request failed:", response.status);
+        const errorData = await response.json().catch(() => null);
+        toast.error(
+          errorData?.message ||
+            `Erreur lors de l'impression du QRCode (${response.status}): ${response.statusText}`
+        );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("QRCode request error:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Erreur de connexion au serveur";
+      toast.error(errorMessage);
     }
   };
 
