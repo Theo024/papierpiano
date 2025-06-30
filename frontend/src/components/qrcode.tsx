@@ -14,7 +14,11 @@ import { Slider } from "@/components/ui/slider";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-function QRCode() {
+interface QRCodeProps {
+  className?: string;
+}
+
+function QRCode({ className }: QRCodeProps) {
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
   const [size, setSize] = useState([3]);
@@ -63,7 +67,9 @@ function QRCode() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">QRCode</Button>
+        <Button className={className} variant="outline">
+          QRCode
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleQRCode}>

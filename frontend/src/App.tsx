@@ -12,14 +12,9 @@ interface ApiError {
 function App() {
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isCutting, setIsCutting] = useState(false);
+  // const [isCutting, setIsCutting] = useState(false);
 
   const handlePrint = async () => {
-    if (!text.trim()) {
-      toast.error("Veuillez saisir du texte avant d'imprimer");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -35,7 +30,7 @@ function App() {
 
       if (response.ok) {
         setText(""); // Clear textarea on success
-        toast.success("Texte imprimé avec succès");
+        toast.success("Texte imprimé et coupé avec succès");
       } else {
         const errorData = (await response
           .json()
@@ -57,42 +52,42 @@ function App() {
     }
   };
 
-  const handleCut = async () => {
-    setIsCutting(true);
+  // const handleCut = async () => {
+  //   setIsCutting(true);
 
-    try {
-      const response = await fetch("/api/cut", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: text,
-        }),
-      });
+  //   try {
+  //     const response = await fetch("/api/cut", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         text: text,
+  //       }),
+  //     });
 
-      if (response.ok) {
-        toast.success("Papier coupé avec succès");
-      } else {
-        const errorData = (await response
-          .json()
-          .catch(() => null)) as ApiError | null;
-        toast.error(
-          errorData?.message ||
-            `Erreur lors de la coupe (${response.status}): ${response.statusText}`
-        );
-      }
-    } catch (error: unknown) {
-      console.error("Cut error:", error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Erreur de connexion au serveur";
-      toast.error(errorMessage);
-    } finally {
-      setIsCutting(false);
-    }
-  };
+  //     if (response.ok) {
+  //       toast.success("Papier coupé avec succès");
+  //     } else {
+  //       const errorData = (await response
+  //         .json()
+  //         .catch(() => null)) as ApiError | null;
+  //       toast.error(
+  //         errorData?.message ||
+  //           `Erreur lors de la coupe (${response.status}): ${response.statusText}`
+  //       );
+  //     }
+  //   } catch (error: unknown) {
+  //     console.error("Cut error:", error);
+  //     const errorMessage =
+  //       error instanceof Error
+  //         ? error.message
+  //         : "Erreur de connexion au serveur";
+  //     toast.error(errorMessage);
+  //   } finally {
+  //     setIsCutting(false);
+  //   }
+  // };
 
   return (
     <>
@@ -114,21 +109,21 @@ function App() {
         <div className="flex gap-2">
           <Button
             onClick={handlePrint}
-            disabled={!text.trim() || isLoading || isCutting}
-            className="grow"
+            disabled={!text.trim() || isLoading}
+            className="flex-1/2"
           >
-            {isLoading ? "Impression..." : "Imprimer"}
+            {isLoading ? "Impression..." : "Imprimer et couper"}
           </Button>
-          <Button
+          {/* <Button
             onClick={handleCut}
             disabled={isCutting || isLoading}
             variant="outline"
             className="px-6"
           >
             {isCutting ? "Coupe..." : "Couper"}
-          </Button>
-          <QRCode></QRCode>
-          <Image></Image>
+          </Button> */}
+          <QRCode className="flex-1/4"></QRCode>
+          <Image className="flex-1/4"></Image>
         </div>
       </div>
     </>

@@ -83,6 +83,7 @@ async def qrcode_handler(request: Request, body: QRCodeBody) -> HTTPResponse:
     printer = request.app.ctx.printer
     printer.set(align="center")
     printer.qr(body.content, size=body.size, native=True)
+    printer.cut()
 
     return json({"message": "Printed QRCode"})
 
@@ -95,6 +96,7 @@ async def image_handler(request: Request) -> HTTPResponse:
 
     printer: Escpos = request.app.ctx.printer
     printer.image(image, impl="graphics", center=True)
+    printer.cut()
 
     return json({"message": "Printed Image"})
 

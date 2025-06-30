@@ -13,7 +13,11 @@ import { Label } from "@/components/ui/label";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-function Image() {
+interface ImageProps {
+  className?: string;
+}
+
+function Image({ className }: ImageProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
@@ -64,7 +68,9 @@ function Image() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Image</Button>
+        <Button className={className} variant="outline">
+          Image
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleImage}>
