@@ -55,6 +55,8 @@ COPY --from=backend-builder --chown=appuser:appuser /app/.venv /app/.venv
 # Copy built frontend from frontend-builder
 COPY --from=frontend-builder --chown=appuser:appuser /app/frontend/dist ./static
 
+COPY --chown=appuser:appuser assets ./assets
+
 # Ensure the virtual environment is in PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
