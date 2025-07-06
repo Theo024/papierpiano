@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 from io import BytesIO
+from zoneinfo import ZoneInfo
 
 from escpos.escpos import Escpos
 from escpos.printer import Network
@@ -49,7 +50,9 @@ async def cut_handler(request: Request) -> HTTPResponse:
 async def print_handler(request: Request, body: PrintBody) -> HTTPResponse:
     printer: Escpos = request.app.ctx.printer
     printer.set_with_default(align="right")
-    printer.textln(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+    printer.textln(
+        datetime.now(tz=ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y %H:%M:%S")
+    )
 
     printer.textln("─" * 48)
     printer.ln()
@@ -91,7 +94,7 @@ async def image_handler(request: Request) -> HTTPResponse:
     printer.ln()
 
     printer.set_with_default(align="right")
-    printer.textln(datetime.now().strftime("%d/%m/%Y %H:%M"))
+    printer.textln(datetime.now(tz=ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y %H:%M"))
 
     caption = request.form.get("caption", "")
     if caption.strip() != "":
