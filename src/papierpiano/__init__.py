@@ -54,13 +54,13 @@ async def print_handler(request: Request, body: PrintBody) -> HTTPResponse:
         datetime.now(tz=ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y %H:%M:%S")
     )
 
+    printer.set_with_default()
+
     printer.textln("─" * 48)
     printer.ln()
 
-    printer.set_with_default(bold=True, double_width=True)
     printer.textln(body.text)
 
-    printer.set_with_default()
     printer.ln()
     printer.textln("─" * 48)
 
