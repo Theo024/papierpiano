@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-papierdaily = "papierdaily:papierdaily"
+papierdaily = "papierdaily:main"
 
 [build-system]
 requires = ["hatchling"]
