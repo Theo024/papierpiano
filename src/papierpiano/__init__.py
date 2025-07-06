@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from io import BytesIO
 
 from escpos.escpos import Escpos
@@ -11,28 +12,6 @@ from sanic_ext import openapi, validate
 app = Sanic("papierpiano")
 app.config.PRINTER_HOST = os.environ["PRINTER_HOST"]
 app.config.PRINTER_PORT = os.environ["PRINTER_PORT"]
-
-
-def compact_char_table(printer, start=4, header=False):
-    """Output a compact character table for the current encoding"""
-    chars = [" "] * 256
-    for i in range(256):
-        if i > 32 and i != 127:
-            chars[i] = chr(i)
-        else:
-            chars[i] = " "
-
-    if header:
-        printer.set(bold=True)
-        printer.text("  0123456789ABCDEF0123456789ABCDEF\n")
-        printer.set(bold=False)
-
-    for y in range(start, 8):
-        printer.set(bold=True)
-        printer.text(f"{y * 2:X} ")
-        printer.set(bold=False)
-        line = "".join(chars[y * 32 : (y + 1) * 32])
-        printer.text(line + "\n")
 
 
 @app.before_server_start
@@ -53,7 +32,7 @@ class PrintBody:
 @dataclass
 class QRCodeBody:
     content: str
-    size: int = 3
+    size: int = 16
 
 
 @app.post("/api/cut")
@@ -68,8 +47,20 @@ async def cut_handler(request: Request) -> HTTPResponse:
 @openapi.definition(body={"application/json": PrintBody})
 @validate(json=PrintBody)
 async def print_handler(request: Request, body: PrintBody) -> HTTPResponse:
-    printer = request.app.ctx.printer
-    printer.text(body.text)
+    printer: Escpos = request.app.ctx.printer
+    printer.set_with_default(align="right")
+    printer.textln(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+
+    printer.textln("─" * 48)
+    printer.ln()
+
+    printer.set_with_default(bold=True, double_width=True)
+    printer.textln(body.text)
+
+    printer.set_with_default()
+    printer.ln()
+    printer.textln("─" * 48)
+
     if body.cut:
         printer.cut()
 
@@ -84,6 +75,7 @@ async def qrcode_handler(request: Request, body: QRCodeBody) -> HTTPResponse:
     printer.set(align="center")
     printer.qr(body.content, size=body.size, native=True)
     printer.cut()
+    printer.set_with_default()
 
     return json({"message": "Printed QRCode"})
 
@@ -96,6 +88,16 @@ async def image_handler(request: Request) -> HTTPResponse:
 
     printer: Escpos = request.app.ctx.printer
     printer.image(image, impl="graphics", center=True)
+    printer.ln()
+
+    printer.set_with_default(align="right")
+    printer.textln(datetime.now().strftime("%d/%m/%Y %H:%M"))
+
+    caption = request.form.get("caption", "")
+    if caption.strip() != "":
+        printer.set_with_default(bold=True)
+        printer.textln(caption)
+
     printer.cut()
 
     return json({"message": "Printed Image"})

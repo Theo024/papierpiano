@@ -20,6 +20,7 @@ interface ImageProps {
 function Image({ className }: ImageProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [caption, setCaption] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -37,6 +38,7 @@ function Image({ className }: ImageProps) {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("caption", caption);
 
     try {
       const response = await fetch("/api/image", {
@@ -75,12 +77,21 @@ function Image({ className }: ImageProps) {
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleImage}>
           <DialogHeader>
-            <DialogTitle>Image</DialogTitle>
+            <DialogTitle>Imprimer une image</DialogTitle>
           </DialogHeader>
           <div className="grid gap-6 py-4">
             <div className="grid gap-3">
               <Label htmlFor="image">Image</Label>
               <Input id="image" type="file" onChange={handleFileChange} />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="caption">Légende</Label>
+              <Input
+                id="caption"
+                name="caption"
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>

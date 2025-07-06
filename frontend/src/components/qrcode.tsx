@@ -21,7 +21,7 @@ interface QRCodeProps {
 function QRCode({ className }: QRCodeProps) {
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
-  const [size, setSize] = useState([3]);
+  const [size, setSize] = useState([16]);
 
   const handleQRCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -74,7 +74,7 @@ function QRCode({ className }: QRCodeProps) {
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleQRCode}>
           <DialogHeader>
-            <DialogTitle>QRCode</DialogTitle>
+            <DialogTitle>Imprimer un QR code</DialogTitle>
           </DialogHeader>
           <div className="grid gap-6 py-4">
             <div className="grid gap-3">
