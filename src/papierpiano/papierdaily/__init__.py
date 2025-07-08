@@ -36,26 +36,6 @@ def main():
     # """)
 
     PICTO_CODES = {
-        "1": "Clear, cloudless sky",
-        "2": "Clear and few clouds",
-        "3": "Partly cloudy",
-        "4": "Overcast",
-        "5": "Fog",
-        "6": "Overcast with rain",
-        "7": "Mixed with showers",
-        "8": "Showers, thunderstorms likely",
-        "9": "Overcast with snow",
-        "10": "Mixed with snow showers",
-        "11": "Mostly cloudy with a mixture of snow and rain",
-        "12": "Overcast with occasional rain",
-        "13": "Overcast with occasional snow",
-        "14": "Mostly cloudy with rain",
-        "15": "Mostly cloudy with snow",
-        "16": "Mostly cloudy with occasional rain",
-        "17": "Mostly cloudy with occasional snow",
-    }
-
-    PICTO_CODES = {
         "1": "Ciel dégagé, sans nuages",
         "2": "Ciel dégagé avec quelques nuages",
         "3": "Partiellement nuageux",
@@ -180,7 +160,7 @@ def main():
     printer.set_with_default(bold=True, underline=True)
     printer.textln("Prévisions météo")
 
-    picto_id = str(weather_data["data_day"]["pictocode"][0])
+    picto_id = str(weather_data["data_day"]["pictocode"][0]).zfill(2)
     picto = PICTO_CODES[picto_id]
 
     image = Image.open(os.path.join(GRAPHICS_PATH, f"{picto_id}_iday_monochrome.png"))
