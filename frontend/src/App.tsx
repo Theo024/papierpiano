@@ -12,7 +12,6 @@ interface ApiError {
 function App() {
   const [text, setText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  // const [isCutting, setIsCutting] = useState(false);
 
   const handlePrint = async () => {
     setIsLoading(true);
@@ -114,14 +113,6 @@ function App() {
           >
             {isLoading ? "Impression..." : "Imprimer et couper"}
           </Button>
-          {/* <Button
-            onClick={handleCut}
-            disabled={isCutting || isLoading}
-            variant="outline"
-            className="px-6"
-          >
-            {isCutting ? "Coupe..." : "Couper"}
-          </Button> */}
           <QRCode className="flex-1/4"></QRCode>
           <Image className="flex-1/4"></Image>
         </div>

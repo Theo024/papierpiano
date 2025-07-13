@@ -21,6 +21,7 @@ function Image({ className }: ImageProps) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -36,6 +37,7 @@ function Image({ className }: ImageProps) {
       return;
     }
 
+    setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("caption", caption);
@@ -64,6 +66,8 @@ function Image({ className }: ImageProps) {
           ? error.message
           : "Erreur de connexion au serveur";
       toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,7 +102,9 @@ function Image({ className }: ImageProps) {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit">Imprimer</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Impression..." : "Imprimer"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

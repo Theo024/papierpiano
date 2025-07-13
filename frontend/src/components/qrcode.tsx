@@ -22,6 +22,7 @@ function QRCode({ className }: QRCodeProps) {
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState("");
   const [size, setSize] = useState([16]);
+  const [loading, setLoading] = useState(false);
 
   const handleQRCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,6 +32,7 @@ function QRCode({ className }: QRCodeProps) {
       return;
     }
 
+    setLoading(true);
     try {
       const response = await fetch("/api/qrcode", {
         method: "POST",
@@ -61,6 +63,8 @@ function QRCode({ className }: QRCodeProps) {
           ? error.message
           : "Erreur de connexion au serveur";
       toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,7 +111,9 @@ function QRCode({ className }: QRCodeProps) {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit">Imprimer</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Impression..." : "Imprimer"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
