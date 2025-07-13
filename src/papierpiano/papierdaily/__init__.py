@@ -197,13 +197,13 @@ def main():
 
     print_left_and_right(
         "Précipitations:",
-        f"{weather_data['data_day']['precipitation'][0]:.0f}mm — {weather_data['data_day']['precipitation_probability'][0]}% prob",
+        f"{weather_data['data_day']['precipitation'][0]:.0f} mm — {weather_data['data_day']['precipitation_probability'][0]}% prob",
     )
     printer.ln()
 
     print_left_and_right(
         "Vent:",
-        f"{WIND_DIRECTION[weather_data['data_day']['winddirection'][0]]} — {weather_data['data_day']['windspeed_mean'][0]:.0f}km/h moy — {weather_data['data_day']['windspeed_max'][0]:.0f}km/h max",
+        f"{WIND_DIRECTION[weather_data['data_day']['winddirection'][0]]} — {weather_data['data_day']['windspeed_mean'][0]:.0f} km/h moy — {weather_data['data_day']['windspeed_max'][0]:.0f} km/h max",
     )
     printer.ln()
 
