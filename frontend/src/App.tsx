@@ -104,6 +104,17 @@ function App() {
           placeholder="Tapez votre texte ici."
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (
+              (e.ctrlKey || e.metaKey) &&
+              e.key === "Enter" &&
+              text.trim() &&
+              !isLoading
+            ) {
+              e.preventDefault();
+              handlePrint();
+            }
+          }}
         />
         <div className="flex gap-2">
           <Button
