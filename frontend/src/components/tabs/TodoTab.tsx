@@ -10,14 +10,13 @@ const TodoTab = () => {
 
   const handlePrint = async () => {
     setIsLoading(true);
-    const payloadText = todos.map((item) => `[ ] ${item}`).join("\n");
     try {
-      const response = await fetch("/api/print", {
+      const response = await fetch("/api/todo", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: payloadText }),
+        body: JSON.stringify({ todos: todos }),
       });
       if (response.ok) {
         setTodos([]);
@@ -45,7 +44,7 @@ const TodoTab = () => {
     <div className="flex flex-col gap-6 py-4">
       <div className="flex gap-2">
         <Input
-          className="font-[Courier_New]"
+          className="md:text-base font-[Courier_New]"
           type="text"
           placeholder="Nouvelle tâche"
           value={newTodo}
@@ -58,7 +57,8 @@ const TodoTab = () => {
           }}
         />
         <Button
-          className="flex-1/4"
+          className="grow"
+          variant="outline"
           onClick={() => {
             if (newTodo.trim()) {
               setTodos([...todos, newTodo.trim()]);
@@ -67,7 +67,7 @@ const TodoTab = () => {
           }}
           disabled={!newTodo.trim()}
         >
-          Ajouter
+          +
         </Button>
       </div>
 
@@ -76,16 +76,15 @@ const TodoTab = () => {
           {todos.map((todo, idx) => (
             <div key={idx} className="flex gap-2">
               <Input
-                className="font-[Courier_New]"
+                className="md:text-base font-[Courier_New]"
                 type="text"
                 value={todo}
-                readOnly
               />
               <Button
-                className="flex-1/4"
+                className="grow"
                 onClick={() => setTodos(todos.filter((_, i) => i !== idx))}
               >
-                Supprimer
+                ×
               </Button>
             </div>
           ))}

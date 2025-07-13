@@ -16,11 +16,11 @@ function App() {
     <>
       <Toaster />
       <div
-        className="h-svh w-full mx-auto flex flex-col gap-3 p-6 text-base md:text-base"
-        style={{
-          width:
-            "calc(48ch + 2px + 1px + var(--spacing) * 6 + var(--spacing) * 6)",
-        }}
+        className="max-w-[33.5rem] w-full mx-auto flex flex-col gap-3 p-6"
+        // style={{
+        //   width:
+        //     "calc(48ch + 2px + 1px + var(--spacing) * 6 + var(--spacing) * 6)",
+        // }}
       >
         <h1 className="font-medium">papierpiano</h1>
         <Tabs

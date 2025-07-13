@@ -23,10 +23,64 @@ def get_printer():
     )
 
 
+def wrap_text(text, max_width=48):
+    if not text:
+        return []
+
+    paragraphs = text.split("\n")
+    lines = []
+
+    for paragraph in paragraphs:
+        if not paragraph.strip():  # Empty line or whitespace only
+            lines.append("")
+            continue
+
+        words = paragraph.split()
+        current_line = ""
+
+        for word in words:
+            # If a single word is longer than max_width, break it
+            if len(word) > max_width:
+                # Add current line if it exists
+                if current_line:
+                    lines.append(current_line)
+                    current_line = ""
+
+                # Break the long word into chunks
+                while len(word) > max_width:
+                    lines.append(word[:max_width])
+                    word = word[max_width:]
+
+                # Set remaining part as current line
+                current_line = word
+            # Check if adding this word would exceed the limit
+            elif current_line and len(current_line) + 1 + len(word) > max_width:
+                # Start a new line
+                lines.append(current_line)
+                current_line = word
+            else:
+                # Add word to current line
+                if current_line:
+                    current_line += " " + word
+                else:
+                    current_line = word
+
+        # Add the last line if it's not empty
+        if current_line:
+            lines.append(current_line)
+
+    return lines
+
+
 @dataclass
 class PrintBody:
     text: str
     cut: bool = True
+
+
+@dataclass
+class TodoBody:
+    todos: list[str]
 
 
 @dataclass
@@ -58,7 +112,8 @@ async def print_handler(request: Request, body: PrintBody) -> HTTPResponse:
     printer.textln("─" * 48)
     printer.ln()
 
-    printer.textln(body.text)
+    for line in wrap_text(body.text):
+        printer.textln(line)
 
     printer.ln()
     printer.textln("─" * 48)
@@ -69,12 +124,55 @@ async def print_handler(request: Request, body: PrintBody) -> HTTPResponse:
     return json({"message": f"Printed {body.text}"})
 
 
+@app.post("/api/todo")
+@openapi.definition(body={"application/json": TodoBody})
+@validate(json=TodoBody)
+async def todo_handler(request: Request, body: TodoBody) -> HTTPResponse:
+    printer: Escpos = get_printer()
+    printer.set_with_default(align="right")
+    printer.textln(
+        datetime.now(tz=ZoneInfo("Europe/Paris")).strftime("%d/%m/%Y %H:%M:%S")
+    )
+
+    printer.set_with_default()
+
+    printer.textln("─" * 48)
+    printer.ln()
+
+    for idx, todo in enumerate(body.todos):
+        if idx > 0:
+            printer.ln()
+
+        printer.set_with_default(double_width=True, bold=True)
+        printer.text("[]")
+        printer.set_with_default()
+        printer.text(" ")
+
+        for idx, line in enumerate(wrap_text(todo, max_width=21)):
+            if idx > 0:
+                printer.set_with_default(double_width=True, bold=True)
+                printer.text("  ")
+                printer.set_with_default()
+                printer.text(" ")
+
+            printer.set_with_default(double_width=True)
+            printer.textln(line)
+
+    printer.set_with_default()
+    printer.ln()
+    printer.textln("─" * 48)
+
+    printer.cut()
+
+    return json({"message": "Printed Todo"})
+
+
 @app.post("/api/qrcode")
 @openapi.definition(body={"application/json": QRCodeBody})
 @validate(json=QRCodeBody)
 async def qrcode_handler(request: Request, body: QRCodeBody) -> HTTPResponse:
     printer = get_printer()
-    printer.set(align="center")
+    printer.set_with_default(align="center")
     printer.qr(body.content, size=body.size, native=True)
     printer.cut()
     printer.set_with_default()

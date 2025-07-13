@@ -42,7 +42,7 @@ const TextTab = () => {
   return (
     <div className="flex flex-col gap-6 py-4">
       <Textarea
-        className="min-h-32 resize-none font-[Courier_New] text-base md:text-base"
+        className="min-h-32 resize-none font-[Courier_New] md:text-base"
         placeholder="Tapez votre texte ici."
         value={text}
         onChange={(e) => setText(e.target.value)}
