@@ -26,7 +26,7 @@ def main():
     )
 
     response = httpx.get(
-        f"https://my.meteoblue.com/packages/basic-day?apikey={API_KEY}&lat={LAT}&lon={LON}&asl={ASL}"
+        f"https://my.meteoblue.com/packages/basic-day?apikey={API_KEY}&lat={LAT}&lon={LON}&asl={ASL}&windspeed=kmh&winddirection=2char"
     )
     response.raise_for_status()
     weather_data = response.json()
@@ -53,6 +53,17 @@ def main():
         "15": "Nuageux avec neige",
         "16": "Nuageux avec pluie occasionnelle",
         "17": "Nuageux avec neige occasionnelle",
+    }
+
+    WIND_DIRECTION = {
+        "N": "N",
+        "NE": "NE",
+        "E": "E",
+        "SE": "SE",
+        "S": "S",
+        "SW": "SO",
+        "W": "O",
+        "NW": "NO",
     }
 
     now = datetime.now(tz=ZoneInfo("Europe/Paris"))
@@ -180,31 +191,19 @@ def main():
     printer.set_with_default()
     print_left_and_right(
         "Température:",
-        str(weather_data["data_day"]["temperature_min"][0])
-        + "°C min"
-        + " — "
-        + str(weather_data["data_day"]["temperature_max"][0])
-        + "°C max",
+        f"{weather_data['data_day']['temperature_min'][0]:.1f}°C min — {weather_data['data_day']['temperature_max'][0]:.1f}°C max",
     )
     printer.ln()
 
     print_left_and_right(
         "Précipitations:",
-        str(weather_data["data_day"]["precipitation"][0])
-        + "mm"
-        + " — "
-        + str(weather_data["data_day"]["precipitation_probability"][0])
-        + "% prob",
+        f"{weather_data['data_day']['precipitation'][0]:.0f}mm — {weather_data['data_day']['precipitation_probability'][0]}% prob",
     )
     printer.ln()
 
     print_left_and_right(
         "Vent:",
-        str(weather_data["data_day"]["windspeed_mean"][0])
-        + "m/s moy"
-        + " — "
-        + str(weather_data["data_day"]["windspeed_max"][0])
-        + "m/s max",
+        f"{WIND_DIRECTION[weather_data['data_day']['winddirection'][0]]} — {weather_data['data_day']['windspeed_mean'][0]:.0f}km/h moy — {weather_data['data_day']['windspeed_max'][0]:.0f}km/h max",
     )
     printer.ln()
 
