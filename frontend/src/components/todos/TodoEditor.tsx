@@ -1,9 +1,32 @@
 import { Button } from "@/components/ui/button";
+import {
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { useAtom, useSetAtom } from "jotai";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { v7 as uuidv7 } from "uuid";
 import { Input } from "../ui/input";
-import { selectedTodoListIdAtom, todoListAtom } from "./atoms";
+import {
+  selectedTodoListIdAtom,
+  todoListAtom,
+  type Todo,
+  type TodoId,
+} from "./atoms";
+import TodoItem from "./TodoItem";
 
 const TodoEditor = () => {
   const [newTodo, setNewTodo] = useState("");
@@ -11,6 +34,26 @@ const TodoEditor = () => {
 
   const setSelectedTodoListId = useSetAtom(selectedTodoListIdAtom);
   const [todoList, setTodoList] = useAtom(todoListAtom);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (todoList && over && active.id !== over.id) {
+      const oldIndex = todoList.todos.findIndex(
+        (todo) => todo.id === active.id
+      );
+      const newIndex = todoList.todos.findIndex((todo) => todo.id === over.id);
+      const updatedTodos = arrayMove(todoList.todos, oldIndex, newIndex);
+      setTodoList({ ...todoList, todos: updatedTodos });
+    }
+  }
 
   function handleNameChange(value: string) {
     if (!todoList) return;
@@ -24,24 +67,25 @@ const TodoEditor = () => {
     if (newTodo.trim()) {
       setTodoList({
         ...todoList,
-        todos: [...todoList.todos, newTodo.trim()],
+        todos: [...todoList.todos, { id: uuidv7(), text: newTodo.trim() }],
       });
       setNewTodo("");
     }
   }
 
-  function handleTodoChange(index: number, value: string) {
+  function handleTodoChange(newTodo: Todo) {
     if (!todoList) return;
 
-    const updatedTodos = [...todoList.todos];
-    updatedTodos[index] = value;
+    const updatedTodos = todoList.todos.map((todo) =>
+      todo.id === newTodo.id ? newTodo : todo
+    );
     setTodoList({ ...todoList, todos: updatedTodos });
   }
 
-  function handleTodoDelete(index: number) {
+  function handleTodoDelete(todoId: TodoId) {
     if (!todoList) return;
 
-    const updatedTodos = todoList.todos.filter((_, idx) => idx !== index);
+    const updatedTodos = todoList.todos.filter((todo) => todo.id !== todoId);
     setTodoList({ ...todoList, todos: updatedTodos });
   }
 
@@ -107,33 +151,39 @@ const TodoEditor = () => {
             }}
           />
           <Button
-            className="px-[15px]"
+            size="icon"
             variant="outline"
             onClick={() => {
               handleNewTodo();
             }}
             disabled={!newTodo.trim()}
           >
-            +
+            <Plus />
           </Button>
         </div>
       </div>
 
       {todoList.todos.length > 0 && (
         <div className="flex flex-col gap-2">
-          {todoList.todos.map((todo, idx) => (
-            <div key={idx} className="flex gap-2">
-              <Input
-                className="md:text-base font-[Courier_New]"
-                type="text"
-                value={todo}
-                onChange={(e) => {
-                  handleTodoChange(idx, e.target.value);
-                }}
-              />
-              <Button onClick={() => handleTodoDelete(idx)}>×</Button>
-            </div>
-          ))}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={todoList.todos}
+              strategy={verticalListSortingStrategy}
+            >
+              {todoList.todos.map((todo) => (
+                <TodoItem
+                  key={todo.id}
+                  todo={todo}
+                  handleTodoChange={handleTodoChange}
+                  handleTodoDelete={handleTodoDelete}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         </div>
       )}
 

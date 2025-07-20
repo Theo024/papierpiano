@@ -1,12 +1,17 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 
-export type TodoListId = string;
+export type TodoId = string;
+export type Todo = {
+  id: TodoId;
+  text: string;
+};
 
+export type TodoListId = string;
 export type TodoList = {
   id: TodoListId;
   name: string;
-  todos: string[];
+  todos: Todo[];
 };
 
 export const todoListsAtom = atomWithStorage<TodoList[]>("todoLists", []);
