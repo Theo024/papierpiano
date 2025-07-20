@@ -3,5 +3,5 @@
   "extends": [
     "config:best-practices",
   ],
-  "ignoreTests": true,
+  "ignoreTests": true
 }
