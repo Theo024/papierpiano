@@ -32,7 +32,13 @@ const TodoItem = ({
           handleTodoChange(todo);
         }}
       />
-      <Button size="icon" variant="outline" {...attributes} {...listeners}>
+      <Button
+        size="icon"
+        variant="outline"
+        className="touch-none"
+        {...attributes}
+        {...listeners}
+      >
         <GripVertical />
       </Button>
       <Button size="icon" onClick={() => handleTodoDelete(todo.id)}>
