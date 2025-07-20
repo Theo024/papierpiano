@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 import ImageTab from "@/components/tabs/ImageTab";
 import QRCodeTab from "@/components/tabs/QRCodeTab";
 import TextTab from "@/components/tabs/TextTab";
-import TodoTab from "@/components/tabs/TodoTab";
+import TodoTab from "@/components/todos/TodoTab";
 import { useState } from "react";
 
 function App() {
