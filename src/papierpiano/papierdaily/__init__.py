@@ -31,8 +31,9 @@ def main():
     response.raise_for_status()
     weather_data = response.json()
 
+    # import json
     # weather_data = json.loads("""
-    # {"metadata":{"modelrun_updatetime_utc":"2025-07-06 15:15","name":"","height":134,"timezone_abbrevation":"CEST","latitude":43.6142,"modelrun_utc":"2025-07-06 15:15","longitude":1.42508,"utc_timeoffset":2.0,"generation_time_ms":28.565048},"units":{"predictability":"percent","precipitation":"mm","windspeed":"ms-1","precipitation_probability":"percent","relativehumidity":"percent","time":"YYYY-MM-DD hh:mm","temperature":"C","pressure":"hPa","winddirection":"degree"},"data_day":{"time":["2025-07-06","2025-07-07","2025-07-08","2025-07-09","2025-07-10","2025-07-11","2025-07-12"],"temperature_instant":[24.5,20.01,17.83,17.9,20.2,22.28,24.71],"precipitation":[0.33,0.2,0.0,0.0,0.0,0.1,8.67],"predictability":[69,66,80,81,73,55,35],"temperature_max":[24.17,21.83,24.31,27.68,31.17,33.83,32.52],"sealevelpressure_mean":[1016,1015,1018,1018,1016,1011,1009],"windspeed_mean":[4.75,6.16,4.55,2.46,2.34,3.28,3.87],"precipitation_hours":[3.0,1.0,0.0,0.0,0.0,1.0,17.0],"sealevelpressure_min":[1014,1014,1017,1017,1013,1008,1007],"pictocode":[16,16,2,1,1,8,8],"snowfraction":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"humiditygreater90_hours":[0.0,0.13,0.17,0.0,0.0,0.0,0.0],"convective_precipitation":[0.0,0.0,0.0,0.0,0.0,0.1,8.67],"relativehumidity_max":[68,91,85,76,68,71,77],"temperature_min":[20.01,17.83,15.82,14.48,15.18,16.67,19.47],"winddirection":[270,270,315,0,0,90,135],"felttemperature_max":[22.7,19.07,21.57,25.92,30.0,33.02,33.39],"relativehumidity_min":[33,61,37,27,21,23,42],"felttemperature_mean":[19.27,17.34,17.56,19.96,22.22,24.64,26.13],"windspeed_min":[3.71,3.99,2.13,1.29,1.78,2.5,2.74],"felttemperature_min":[17.32,15.3,13.75,13.5,13.67,15.33,19.24],"precipitation_probability":[19,33,0,0,0,25,40],"uvindex":[6,6,7,8,9,8,8],"rainspot":["1112222111111111111111111111111111111111111111111","1111910191991919100009919000909099090900000090000","0000000000000000000000000000000000000000000000099","0000000000000000000000000000000000000000000000000","0000000000000000000000000000000000000000000000000","0000000900000099999009999909000000000000000000000","2223333233333322333333333333333333333333332222233"],"temperature_mean":[22.28,19.83,19.97,21.46,23.76,26.12,26.19],"sealevelpressure_max":[1017,1017,1020,1020,1018,1014,1010],"relativehumidity_mean":[48,75,60,48,41,43,58],"predictability_class":[4.0,4.0,5.0,5.0,4.0,3.0,2.0],"windspeed_max":[5.8,8.33,5.34,3.52,3.05,4.1,4.6]}}
+    # {"metadata":{"modelrun_updatetime_utc":"2025-07-06 15:15","name":"","height":134,"timezone_abbrevation":"CEST","latitude":43.6142,"modelrun_utc":"2025-07-06 15:15","longitude":1.42508,"utc_timeoffset":2.0,"generation_time_ms":28.565048},"units":{"predictability":"percent","precipitation":"mm","windspeed":"ms-1","precipitation_probability":"percent","relativehumidity":"percent","time":"YYYY-MM-DD hh:mm","temperature":"C","pressure":"hPa","winddirection":"degree"},"data_day":{"time":["2025-07-06","2025-07-07","2025-07-08","2025-07-09","2025-07-10","2025-07-11","2025-07-12"],"temperature_instant":[24.5,20.01,17.83,17.9,20.2,22.28,24.71],"precipitation":[0.33,0.2,0.0,0.0,0.0,0.1,8.67],"predictability":[69,66,80,81,73,55,35],"temperature_max":[24.17,21.83,24.31,27.68,31.17,33.83,32.52],"sealevelpressure_mean":[1016,1015,1018,1018,1016,1011,1009],"windspeed_mean":[4.75,6.16,4.55,2.46,2.34,3.28,3.87],"precipitation_hours":[3.0,1.0,0.0,0.0,0.0,1.0,17.0],"sealevelpressure_min":[1014,1014,1017,1017,1013,1008,1007],"pictocode":[16,16,2,1,1,8,8],"snowfraction":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"humiditygreater90_hours":[0.0,0.13,0.17,0.0,0.0,0.0,0.0],"convective_precipitation":[0.0,0.0,0.0,0.0,0.0,0.1,8.67],"relativehumidity_max":[68,91,85,76,68,71,77],"temperature_min":[20.01,17.83,15.82,14.48,15.18,16.67,19.47],"winddirection":["SE",270,315,0,0,90,135],"felttemperature_max":[22.7,19.07,21.57,25.92,30.0,33.02,33.39],"relativehumidity_min":[33,61,37,27,21,23,42],"felttemperature_mean":[19.27,17.34,17.56,19.96,22.22,24.64,26.13],"windspeed_min":[3.71,3.99,2.13,1.29,1.78,2.5,2.74],"felttemperature_min":[17.32,15.3,13.75,13.5,13.67,15.33,19.24],"precipitation_probability":[19,33,0,0,0,25,40],"uvindex":[6,6,7,8,9,8,8],"rainspot":["1112222111111111111111111111111111111111111111111","1111910191991919100009919000909099090900000090000","0000000000000000000000000000000000000000000000099","0000000000000000000000000000000000000000000000000","0000000000000000000000000000000000000000000000000","0000000900000099999009999909000000000000000000000","2223333233333322333333333333333333333333332222233"],"temperature_mean":[22.28,19.83,19.97,21.46,23.76,26.12,26.19],"sealevelpressure_max":[1017,1017,1020,1020,1018,1014,1010],"relativehumidity_mean":[48,75,60,48,41,43,58],"predictability_class":[4.0,4.0,5.0,5.0,4.0,3.0,2.0],"windspeed_max":[5.8,8.33,5.34,3.52,3.05,4.1,4.6]}}
     # """)
 
     PICTO_CODES = {
@@ -209,6 +210,26 @@ def main():
 
     printer.ln()
     printer.ln()
+
+    tasks = []
+    # Arroser calathea tous les 2 jours
+    if now.toordinal() % 2 == 0:
+        tasks.append("Arroser calathea")
+    # Changer les draps tous les 2 samedis
+    if now.weekday() == 5 and ((now.isocalendar().week % 2) == 0):
+        tasks.append("Changer les draps")
+
+    if tasks:
+        printer.set_with_default(bold=True, underline=True)
+        printer.textln("Tâches du jour")
+        printer.ln()
+        printer.set_with_default()
+
+        for task in tasks:
+            printer.textln(" " * 4 + "» " + task)
+
+        printer.ln()
+        printer.ln()
 
     citations = [
         "La vie est trop courte pour boire du mauvais vin.",
