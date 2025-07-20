@@ -1,12 +1,13 @@
-import SavedTodoLists from "./SavedTodoLists";
+import { useAtomValue } from "jotai";
 import TodoEditor from "./TodoEditor";
-import { useTodoView } from "./useTodoView";
+import TodoLists from "./TodoLists";
+import { selectedTodoListIdAtom } from "./atoms";
 
 const TodoTab = () => {
-  const { currentView } = useTodoView();
+  const selectedTodoListId = useAtomValue(selectedTodoListIdAtom);
 
-  if (currentView === "list") {
-    return <SavedTodoLists />;
+  if (selectedTodoListId === null) {
+    return <TodoLists />;
   }
 
   return <TodoEditor />;

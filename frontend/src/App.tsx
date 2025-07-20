@@ -1,33 +1,26 @@
+import ImageTab from "@/components/ImageTab";
+import QRCodeTab from "@/components/QRCodeTab";
+import TextTab from "@/components/TextTab";
+import TodoTab from "@/components/todos/TodoTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAtom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { Toaster } from "sonner";
 
-import ImageTab from "@/components/tabs/ImageTab";
-import QRCodeTab from "@/components/tabs/QRCodeTab";
-import TextTab from "@/components/tabs/TextTab";
-import TodoTab from "@/components/todos/TodoTab";
-import { useState } from "react";
+type Tab = "text" | "todo" | "qrcode" | "image";
+const selectedTabAtom = atomWithStorage<Tab>("selectedTab", "text");
 
 function App() {
-  const [mode, setMode] = useState<"text" | "todo" | "qrcode" | "image">(
-    "text"
-  );
+  const [selectedTab, setSelectedTab] = useAtom(selectedTabAtom);
 
   return (
     <>
       <Toaster />
-      <div
-        className="max-w-[33.5rem] w-full mx-auto flex flex-col gap-3 p-6"
-        // style={{
-        //   width:
-        //     "calc(48ch + 2px + 1px + var(--spacing) * 6 + var(--spacing) * 6)",
-        // }}
-      >
+      <div className="max-w-[33.5rem] w-full mx-auto flex flex-col gap-3 p-6">
         <h1 className="font-medium">papierpiano</h1>
         <Tabs
-          value={mode}
-          onValueChange={(v) =>
-            setMode(v as "text" | "todo" | "qrcode" | "image")
-          }
+          value={selectedTab}
+          onValueChange={(v) => setSelectedTab(v as Tab)}
         >
           <TabsList>
             <TabsTrigger value="text">Texte</TabsTrigger>
