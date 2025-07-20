@@ -11,20 +11,24 @@ const TodoTab = () => {
   });
   const [newTodo, setNewTodo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [history, setHistory] = useState<
+  const [savedTodoList, setSavedTodoList] = useState<
     { id: string; name: string; todos: string[]; date: string }[]
   >(() => {
     const stored = localStorage.getItem("todoHistory");
     return stored ? JSON.parse(stored) : [];
   });
-  const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(
-    null
-  );
+  const [selectedSavedTodoListId, setSelectedSavedTodoListId] = useState<
+    string | null
+  >(null);
   const [listName, setListName] = useState("");
+  const [currentView, setCurrentView] = useState<"list" | "edit">("list");
 
   useEffect(() => {
-    if (todos.length > 0 || listName.trim() !== "") {
-      if (!selectedHistoryId) {
+    if (
+      currentView === "edit" &&
+      (todos.length > 0 || listName.trim() !== "")
+    ) {
+      if (!selectedSavedTodoListId) {
         // Create new entry and select it
         const newEntry = {
           id: Date.now().toString(),
@@ -32,17 +36,17 @@ const TodoTab = () => {
           todos: todos,
           date: new Date().toLocaleString(),
         };
-        setHistory((prevHistory) => {
-          const updatedHistory = [newEntry, ...prevHistory];
-          localStorage.setItem("todoHistory", JSON.stringify(updatedHistory));
-          return updatedHistory;
+        setSavedTodoList((prevList) => {
+          const updatedList = [newEntry, ...prevList];
+          localStorage.setItem("todoHistory", JSON.stringify(updatedList));
+          return updatedList;
         });
-        setSelectedHistoryId(newEntry.id);
+        setSelectedSavedTodoListId(newEntry.id);
       } else {
         // Update selected entry
-        setHistory((prevHistory) => {
-          const updatedHistory = prevHistory.map((entry) =>
-            entry.id === selectedHistoryId
+        setSavedTodoList((prevList) => {
+          const updatedList = prevList.map((entry) =>
+            entry.id === selectedSavedTodoListId
               ? {
                   ...entry,
                   name: listName || "(Sans titre)",
@@ -51,12 +55,12 @@ const TodoTab = () => {
                 }
               : entry
           );
-          localStorage.setItem("todoHistory", JSON.stringify(updatedHistory));
-          return updatedHistory;
+          localStorage.setItem("todoHistory", JSON.stringify(updatedList));
+          return updatedList;
         });
       }
     }
-  }, [todos, listName]);
+  }, [todos, listName, currentView, selectedSavedTodoListId]);
 
   const handlePrint = async () => {
     setIsLoading(true);
@@ -67,10 +71,11 @@ const TodoTab = () => {
         todos: todos,
         date: new Date().toLocaleString(),
       };
-      setHistory((prevHistory) => [newEntry, ...prevHistory]);
+      setSavedTodoList((prevList) => [newEntry, ...prevList]);
       setTodos([]);
       setListName("");
-      setSelectedHistoryId(null);
+      setSelectedSavedTodoListId(null);
+      setCurrentView("list");
       toast.success("Todo list imprimée avec succès");
     } catch (error: unknown) {
       console.error("Print error:", error);
@@ -84,30 +89,77 @@ const TodoTab = () => {
     }
   };
 
-  const handleLoadHistory = (id: string) => {
-    const entry = history.find((h) => h.id === id);
+  const handleLoadSavedTodoList = (id: string) => {
+    const entry = savedTodoList.find((h) => h.id === id);
     if (entry) {
       setTodos(entry.todos);
       setListName(entry.name || "");
-      setSelectedHistoryId(id);
+      setSelectedSavedTodoListId(id);
+      setCurrentView("edit");
     }
   };
 
-  const handleDeleteHistory = (id: string) => {
-    setHistory(history.filter((h) => h.id !== id));
-    if (selectedHistoryId === id) {
-      setSelectedHistoryId(null);
+  const handleDeleteSavedTodoList = (id: string) => {
+    setSavedTodoList(savedTodoList.filter((h) => h.id !== id));
+    if (selectedSavedTodoListId === id) {
+      setSelectedSavedTodoListId(null);
       setTodos([]);
       setListName("");
+      setCurrentView("list");
     }
   };
 
+  const handleNewList = () => {
+    setTodos([]);
+    setListName("");
+    setSelectedSavedTodoListId(null);
+    setCurrentView("edit");
+  };
+
+  // --- Views ---
+  if (currentView === "list") {
+    return (
+      <div className="flex flex-col gap-6 py-4">
+        <div className="flex flex-col gap-2 mt-4">
+          <div className="font-bold">Listes sauvegardées</div>
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <Button
+              className="justify-start font-semibold col-span-2"
+              variant="outline"
+              onClick={handleNewList}
+            >
+              Nouvelle liste
+            </Button>
+            {savedTodoList.map((entry) => (
+              <>
+                <Button
+                  key={entry.id + "-btn"}
+                  variant={"outline"}
+                  onClick={() => handleLoadSavedTodoList(entry.id)}
+                  className="col-start-1 justify-start font-normal"
+                >
+                  {entry.name}
+                </Button>
+                <Button
+                  size="icon"
+                  onClick={() => handleDeleteSavedTodoList(entry.id)}
+                >
+                  <Trash />
+                </Button>
+              </>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Edit view ---
   return (
     <div className="flex flex-col gap-6 py-4">
       <div className="flex flex-col gap-2">
         {/* List name input */}
         <Input
-          // className="md:text-base"
           type="text"
           placeholder="Nom de la liste"
           value={listName}
@@ -171,7 +223,7 @@ const TodoTab = () => {
         </div>
       )}
 
-      <div className="flex">
+      <div className="flex gap-2">
         <Button
           className="flex-1"
           disabled={todos.length === 0 || isLoading}
@@ -179,54 +231,14 @@ const TodoTab = () => {
         >
           {isLoading ? "Impression..." : "Imprimer"}
         </Button>
+        <Button
+          className="flex-1"
+          variant="outline"
+          onClick={() => setCurrentView("list")}
+        >
+          Retour
+        </Button>
       </div>
-
-      {/* History section with grid layout */}
-      {history.length > 0 && (
-        <div className="flex flex-col gap-2 mt-4">
-          <div className="font-bold">Historique</div>
-          <div className="grid grid-cols-[1fr_auto] gap-2">
-            <Button
-              className="justify-start font-semibold col-span-2"
-              variant="outline"
-              onClick={() => {
-                setTodos([]);
-                setListName("");
-                setSelectedHistoryId(null);
-              }}
-            >
-              Nouvelle liste
-            </Button>
-            {history.map((entry) => (
-              <>
-                <Button
-                  key={entry.id + "-btn"}
-                  variant={
-                    selectedHistoryId === entry.id ? "default" : "outline"
-                  }
-                  onClick={() => handleLoadHistory(entry.id)}
-                  className="col-start-1 justify-start font-normal"
-                >
-                  {entry.name}
-                  {/* <span className="font-semibold"></span> */}
-                </Button>
-                {/* <div className="flex items-center text-xs text-gray-500 col-span-1">
-                  {entry.date}
-                </div> */}
-                <Button
-                  size="icon"
-                  // variant="destructive"
-                  onClick={() => handleDeleteHistory(entry.id)}
-                >
-                  <Trash />
-                </Button>
-                {/* <div className="flex justify-end col-span-1">
-                </div> */}
-              </>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
