@@ -79,6 +79,11 @@ const TodoTab = () => {
                 className="md:text-base font-[Courier_New]"
                 type="text"
                 value={todo}
+                onChange={(e) => {
+                  const updatedTodos = [...todos];
+                  updatedTodos[idx] = e.target.value;
+                  setTodos(updatedTodos);
+                }}
               />
               <Button
                 className="grow"
