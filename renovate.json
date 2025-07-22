@@ -1,7 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:best-practices"
-  ],
-  "ignoreTests": true
+    "config:best-practices",
+    ":automergeDigest",
+    ":skipStatusChecks",
+    "schedule:automergeDaily"
+  ]
 }
