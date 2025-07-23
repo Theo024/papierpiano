@@ -3,6 +3,7 @@
   "extends": [
     "config:best-practices",
     ":automergeDigest",
+    ":automergeMinor",
     ":skipStatusChecks",
     "schedule:automergeDaily"
   ]
