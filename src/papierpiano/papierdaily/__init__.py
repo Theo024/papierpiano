@@ -129,6 +129,7 @@ def main():
         "06-06": ["Aloïs"],
         "07-06": ["Alain Vergez"],
         "07-21": ["Benjamin Besnier"],
+        "07-23": ["Juliette"],
         "07-24": ["Thomas Guillon"],
         "07-30": ["Antonin"],
         "08-01": ["Nico Sousa", "Dorian Bihel"],
@@ -212,8 +213,8 @@ def main():
     printer.ln()
 
     tasks = []
-    # Arroser calathea tous les 2 jours
-    if now.toordinal() % 2 == 0:
+    # Arroser calathea tous les 3 jours
+    if now.toordinal() % 3 == 0:
         tasks.append("Arroser calathea")
     # Changer les draps tous les 2 samedis
     if now.weekday() == 5 and ((now.isocalendar().week % 2) == 0):
