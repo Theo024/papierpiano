@@ -99,7 +99,7 @@ const TodoEditor = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ todos: todoList.todos }),
+        body: JSON.stringify({ todos: todoList.todos.map((todo) => todo.text) }),
       });
       if (response.ok) {
         setSelectedTodoListId(null);
