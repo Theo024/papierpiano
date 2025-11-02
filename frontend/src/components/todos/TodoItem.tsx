@@ -28,8 +28,8 @@ const TodoItem = ({
         className="md:text-base font-[Courier_New]"
         type="text"
         value={todo.text}
-        onChange={() => {
-          handleTodoChange(todo);
+        onChange={(event) => {
+          handleTodoChange({ ...todo, text: event.target.value });
         }}
       />
       <Button
