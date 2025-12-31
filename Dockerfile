@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Sanic API with Vite React frontend
 
 # Stage 1: Build the React frontend
-FROM node:24-slim@sha256:a41097af8626178a615785b4b707954429d1092f602e38298a31ce5ac56a787e AS frontend-builder
+FROM node:24-slim@sha256:b83af04d005d8e3716f542469a28ad2947ba382f6b4a76ddca0827a21446a540 AS frontend-builder
 
 WORKDIR /app/frontend
 
