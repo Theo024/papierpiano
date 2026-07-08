@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 from escpos.printer import Network
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 PRINTER_HOST = os.environ["PRINTER_HOST"]
 PRINTER_PORT = os.environ["PRINTER_PORT"]
@@ -16,6 +16,158 @@ LON = "1.42508"
 ELEVATION = "134"
 
 GRAPHICS_PATH = "assets/monochrome_daily/"
+
+# Largeur d'impression en pixels (48 colonnes en police A sur la TM-T20II).
+PRINT_WIDTH = 576
+
+# Titres suivis en bourse : (ticker Yahoo Finance, libellé affiché)
+STOCKS = [
+    ("AIR.PA", "Airbus"),
+    ("CW8.PA", "CW8 (MSCI World)"),
+]
+
+# Police de la section bourse (rendue en image) : (fichier, instance variable).
+# L'instance ne s'applique qu'aux polices variables ; None sinon.
+BOURSE_FONT_DATA = ("assets/JetBrainsMono.ttf", "Regular")
+BOURSE_FONT_LABEL = ("assets/JetBrainsMono.ttf", "Medium")
+
+
+def fetch_stock(symbol):
+    """Récupère l'historique quotidien (clôtures) d'un titre via Yahoo Finance."""
+    response = httpx.get(
+        f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}",
+        params={"range": "1mo", "interval": "1d"},
+        headers={"User-Agent": "Mozilla/5.0"},
+        timeout=15,
+    )
+    response.raise_for_status()
+    result = response.json()["chart"]["result"][0]
+    closes = [c for c in result["indicators"]["quote"][0]["close"] if c is not None]
+    currency = result["meta"].get("currency", "")
+    return closes, currency
+
+
+def collect_stocks():
+    """Récupère les données de tous les titres suivis, en ignorant les échecs."""
+    stocks = []
+    for symbol, label in STOCKS:
+        try:
+            closes, currency = fetch_stock(symbol)
+        except Exception:
+            continue
+        if len(closes) >= 2:
+            stocks.append((label, closes, currency))
+    return stocks
+
+
+def fmt_fr(value):
+    """Formate un nombre à la française : espace pour les milliers, virgule décimale."""
+    return f"{value:,.2f}".replace(",", " ").replace(".", ",")
+
+
+def load_font(spec, size):
+    """Charge une police depuis (fichier, instance variable ou None)."""
+    path, variation = spec
+    font = ImageFont.truetype(path, size)
+    if variation:
+        try:
+            font.set_variation_by_name(variation)
+        except Exception:
+            pass
+    return font
+
+
+def _graph_points(values, box, pad=6):
+    """Coordonnées de la courbe à l'intérieur d'une boîte (x0, y0, x1, y1)."""
+    x0, y0, x1, y1 = box
+    low, high = min(values), max(values)
+    span = (high - low) or 1
+    count = len(values)
+    return [
+        (
+            x0 + pad + (x1 - x0 - 2 * pad) * (i / (count - 1) if count > 1 else 0),
+            y1 - pad - (y1 - y0 - 2 * pad) * ((value - low) / span),
+        )
+        for i, value in enumerate(values)
+    ]
+
+
+def draw_graph(draw, values, box):
+    """Dessine le mini-graphe des clôtures : aire en dégradé + courbe + point final.
+
+    L'aplat gris est tramé en points par l'imprimante lors de la conversion N&B,
+    ce qui donne une zone claire sous la courbe.
+    """
+    _, _, _, y1 = box
+    points = _graph_points(values, box)
+    base = y1 - 2
+    for (xa, ya), (xb, yb) in zip(points, points[1:]):
+        draw.polygon([(xa, ya), (xb, yb), (xb, base), (xa, base)], fill=225)
+    draw.line([(box[0], base), (box[2], base)], fill=140, width=1)
+    draw.line(points, fill=0, width=3, joint="curve")
+    lx, ly = points[-1]
+    draw.ellipse([lx - 3, ly - 3, lx + 3, ly + 3], fill=0)
+
+
+def render_bourse(
+    stocks,
+    data_spec=BOURSE_FONT_DATA,
+    label_spec=BOURSE_FONT_LABEL,
+    block_height=76,
+):
+    """Compose tout le contenu de la section bourse en une seule image.
+
+    L'ESC/POS ne peut pas mêler texte et image sur une même ligne : on rend donc
+    le libellé, le cours, la variation et le graphe ensemble, ce qui permet
+    d'aligner la courbe à droite du cours.
+    """
+    label_font = load_font(label_spec, 26)
+    data_font = load_font(data_spec, 22)
+
+    image = Image.new("L", (PRINT_WIDTH, block_height * len(stocks)), 255)
+    draw = ImageDraw.Draw(image)
+
+    graph_left = PRINT_WIDTH - 160  # de l'air entre le texte et le graphe
+
+    for index, (label, closes, currency) in enumerate(stocks):
+        top = index * block_height + 6
+        last, previous = closes[-1], closes[-2]
+        change = last - previous
+        change_pct = (change / previous * 100) if previous else 0
+        up = change >= 0
+        sign = "+" if up else "-"
+        pct_str = f"{abs(change_pct):.1f}".replace(".", ",")
+
+        draw.text((8, top), label, font=label_font, fill=0)
+
+        data_y = top + 32
+        prefix = f"{fmt_fr(last)} {currency}   "
+        draw.text((8, data_y), prefix, font=data_font, fill=0)
+
+        # Triangle de tendance dessiné en vectoriel (absent des polices).
+        arrow_x = 8 + draw.textlength(prefix, font=data_font)
+        arrow_y, arrow_size = data_y + 5, 12
+        if up:
+            triangle = [
+                (arrow_x, arrow_y + arrow_size),
+                (arrow_x + arrow_size, arrow_y + arrow_size),
+                (arrow_x + arrow_size / 2, arrow_y),
+            ]
+        else:
+            triangle = [
+                (arrow_x, arrow_y),
+                (arrow_x + arrow_size, arrow_y),
+                (arrow_x + arrow_size / 2, arrow_y + arrow_size),
+            ]
+        draw.polygon(triangle, fill=0)
+
+        variation = f"{sign}{pct_str}% ({sign}{fmt_fr(abs(change))})"
+        draw.text((arrow_x + arrow_size + 6, data_y), variation, font=data_font, fill=0)
+
+        box = (graph_left, top + 4, PRINT_WIDTH - 10, top + block_height - 12)
+        draw_graph(draw, closes[-7:], box)
+
+    return image
 
 
 def main():
@@ -234,6 +386,15 @@ def main():
 
     printer.ln()
     printer.ln()
+
+    stocks_data = collect_stocks()
+    if stocks_data:
+        printer.set_with_default(bold=True, underline=True)
+        printer.textln("Bourse")
+        printer.ln()
+        printer.image(render_bourse(stocks_data), impl="graphics", center=True)
+        printer.ln()
+        printer.ln()
 
     tasks = []
     # Arroser calathea tous les 3 jours
