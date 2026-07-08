@@ -10,11 +10,10 @@ from PIL import Image
 
 PRINTER_HOST = os.environ["PRINTER_HOST"]
 PRINTER_PORT = os.environ["PRINTER_PORT"]
-API_KEY = os.environ["METEOBLUE_API_KEY"]
 
 LAT = "43.6142"
 LON = "1.42508"
-ASL = "134"
+ELEVATION = "134"
 
 GRAPHICS_PATH = "assets/monochrome_daily/"
 
@@ -27,46 +26,70 @@ def main():
     )
 
     response = httpx.get(
-        f"https://my.meteoblue.com/packages/basic-day?apikey={API_KEY}&lat={LAT}&lon={LON}&asl={ASL}&windspeed=kmh&winddirection=2char"
+        "https://api.open-meteo.com/v1/forecast",
+        params={
+            "latitude": LAT,
+            "longitude": LON,
+            "elevation": ELEVATION,
+            "daily": ",".join(
+                [
+                    "weather_code",
+                    "temperature_2m_min",
+                    "temperature_2m_max",
+                    "precipitation_sum",
+                    "precipitation_probability_max",
+                    "wind_direction_10m_dominant",
+                    "wind_speed_10m_max",
+                    "wind_gusts_10m_max",
+                ]
+            ),
+            "wind_speed_unit": "kmh",
+            "timezone": "Europe/Paris",
+            "forecast_days": 1,
+        },
     )
     response.raise_for_status()
     weather_data = response.json()
+    daily = weather_data["daily"]
 
-    # import json
-    # weather_data = json.loads("""
-    # {"metadata":{"modelrun_updatetime_utc":"2025-07-06 15:15","name":"","height":134,"timezone_abbrevation":"CEST","latitude":43.6142,"modelrun_utc":"2025-07-06 15:15","longitude":1.42508,"utc_timeoffset":2.0,"generation_time_ms":28.565048},"units":{"predictability":"percent","precipitation":"mm","windspeed":"ms-1","precipitation_probability":"percent","relativehumidity":"percent","time":"YYYY-MM-DD hh:mm","temperature":"C","pressure":"hPa","winddirection":"degree"},"data_day":{"time":["2025-07-06","2025-07-07","2025-07-08","2025-07-09","2025-07-10","2025-07-11","2025-07-12"],"temperature_instant":[24.5,20.01,17.83,17.9,20.2,22.28,24.71],"precipitation":[0.33,0.2,0.0,0.0,0.0,0.1,8.67],"predictability":[69,66,80,81,73,55,35],"temperature_max":[24.17,21.83,24.31,27.68,31.17,33.83,32.52],"sealevelpressure_mean":[1016,1015,1018,1018,1016,1011,1009],"windspeed_mean":[4.75,6.16,4.55,2.46,2.34,3.28,3.87],"precipitation_hours":[3.0,1.0,0.0,0.0,0.0,1.0,17.0],"sealevelpressure_min":[1014,1014,1017,1017,1013,1008,1007],"pictocode":[16,16,2,1,1,8,8],"snowfraction":[0.0,0.0,0.0,0.0,0.0,0.0,0.0],"humiditygreater90_hours":[0.0,0.13,0.17,0.0,0.0,0.0,0.0],"convective_precipitation":[0.0,0.0,0.0,0.0,0.0,0.1,8.67],"relativehumidity_max":[68,91,85,76,68,71,77],"temperature_min":[20.01,17.83,15.82,14.48,15.18,16.67,19.47],"winddirection":["SE",270,315,0,0,90,135],"felttemperature_max":[22.7,19.07,21.57,25.92,30.0,33.02,33.39],"relativehumidity_min":[33,61,37,27,21,23,42],"felttemperature_mean":[19.27,17.34,17.56,19.96,22.22,24.64,26.13],"windspeed_min":[3.71,3.99,2.13,1.29,1.78,2.5,2.74],"felttemperature_min":[17.32,15.3,13.75,13.5,13.67,15.33,19.24],"precipitation_probability":[19,33,0,0,0,25,40],"uvindex":[6,6,7,8,9,8,8],"rainspot":["1112222111111111111111111111111111111111111111111","1111910191991919100009919000909099090900000090000","0000000000000000000000000000000000000000000000099","0000000000000000000000000000000000000000000000000","0000000000000000000000000000000000000000000000000","0000000900000099999009999909000000000000000000000","2223333233333322333333333333333333333333332222233"],"temperature_mean":[22.28,19.83,19.97,21.46,23.76,26.12,26.19],"sealevelpressure_max":[1017,1017,1020,1020,1018,1014,1010],"relativehumidity_mean":[48,75,60,48,41,43,58],"predictability_class":[4.0,4.0,5.0,5.0,4.0,3.0,2.0],"windspeed_max":[5.8,8.33,5.34,3.52,3.05,4.1,4.6]}}
-    # """)
-
-    PICTO_CODES = {
-        "01": "Ciel dégagé, sans nuages",
-        "02": "Ciel dégagé avec quelques nuages",
-        "03": "Partiellement nuageux",
-        "04": "Couvert",
-        "05": "Brouillard",
-        "06": "Couvert avec pluie",
-        "07": "Variable avec averses",
-        "08": "Averses, orages probables",
-        "09": "Couvert avec neige",
-        "10": "Variable avec averses de neige",
-        "11": "Nuageux avec un mélange de neige et pluie",
-        "12": "Couvert avec pluie occasionnelle",
-        "13": "Couvert avec neige occasionnelle",
-        "14": "Nuageux avec pluie",
-        "15": "Nuageux avec neige",
-        "16": "Nuageux avec pluie occasionnelle",
-        "17": "Nuageux avec neige occasionnelle",
+    # Open-Meteo returns WMO weather codes (0-99). Each code has its own French
+    # description, plus the meteoblue pictocode whose icon asset we reuse (several
+    # WMO codes can share one picto while keeping distinct descriptions).
+    WMO_CODES = {
+        0: ("01", "Ciel dégagé"),
+        1: ("02", "Principalement dégagé"),
+        2: ("03", "Partiellement nuageux"),
+        3: ("04", "Couvert"),
+        45: ("05", "Brouillard"),
+        48: ("05", "Brouillard givrant"),
+        51: ("16", "Bruine légère"),
+        53: ("16", "Bruine modérée"),
+        55: ("14", "Bruine dense"),
+        56: ("11", "Bruine verglaçante légère"),
+        57: ("11", "Bruine verglaçante dense"),
+        61: ("14", "Pluie faible"),
+        63: ("06", "Pluie modérée"),
+        65: ("06", "Pluie forte"),
+        66: ("11", "Pluie verglaçante faible"),
+        67: ("11", "Pluie verglaçante forte"),
+        71: ("17", "Neige faible"),
+        73: ("15", "Neige modérée"),
+        75: ("09", "Neige forte"),
+        77: ("15", "Grains de neige"),
+        80: ("07", "Averses de pluie faibles"),
+        81: ("07", "Averses de pluie modérées"),
+        82: ("08", "Averses de pluie violentes"),
+        85: ("10", "Averses de neige faibles"),
+        86: ("10", "Averses de neige fortes"),
+        95: ("08", "Orage"),
+        96: ("08", "Orage avec grêle légère"),
+        99: ("08", "Orage avec grêle forte"),
     }
 
-    WIND_DIRECTION = {
-        "N": "N",
-        "NE": "NE",
-        "E": "E",
-        "SE": "SE",
-        "S": "S",
-        "SW": "SO",
-        "W": "O",
-        "NW": "NO",
-    }
+    def wind_direction_fr(degrees):
+        """Convert a wind direction in degrees to a French cardinal point."""
+        points = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
+        return points[round(degrees / 45) % 8]
 
     now = datetime.now(tz=ZoneInfo("Europe/Paris"))
     weekday = now.weekday()
@@ -174,8 +197,7 @@ def main():
     printer.set_with_default(bold=True, underline=True)
     printer.textln("Prévisions météo")
 
-    picto_id = str(weather_data["data_day"]["pictocode"][0]).zfill(2)
-    picto = PICTO_CODES[picto_id]
+    picto_id, picto = WMO_CODES.get(daily["weather_code"][0], ("03", "Partiellement nuageux"))
 
     image = Image.open(os.path.join(GRAPHICS_PATH, f"{picto_id}_iday_monochrome.png"))
     image.thumbnail((100, image.height), Image.Resampling.LANCZOS)
@@ -194,25 +216,19 @@ def main():
     printer.set_with_default()
     print_left_and_right(
         "Température:",
-        f"{weather_data['data_day']['temperature_min'][0]:.1f}°C min — {weather_data['data_day']['temperature_max'][0]:.1f}°C max",
+        f"{daily['temperature_2m_min'][0]:.1f}°C min — {daily['temperature_2m_max'][0]:.1f}°C max",
     )
     printer.ln()
 
     print_left_and_right(
         "Précipitations:",
-        f"{weather_data['data_day']['precipitation'][0]:.0f} mm — {weather_data['data_day']['precipitation_probability'][0]}% prob",
+        f"{daily['precipitation_sum'][0]:.0f} mm — {daily['precipitation_probability_max'][0]}% prob",
     )
     printer.ln()
 
     print_left_and_right(
         "Vent:",
-        f"{WIND_DIRECTION[weather_data['data_day']['winddirection'][0]]} — {weather_data['data_day']['windspeed_mean'][0]:.0f} km/h moy — {weather_data['data_day']['windspeed_max'][0]:.0f} km/h max",
-    )
-    printer.ln()
-
-    print_left_and_right(
-        "Humidité:",
-        f"{int(weather_data['data_day']['relativehumidity_min'][0])}% min — {int(weather_data['data_day']['relativehumidity_mean'][0])}% moy — {int(weather_data['data_day']['relativehumidity_max'][0])}% max",
+        f"{wind_direction_fr(daily['wind_direction_10m_dominant'][0])} — {daily['wind_speed_10m_max'][0]:.0f} km/h max — {daily['wind_gusts_10m_max'][0]:.0f} km/h rafales",
     )
     printer.ln()
 
