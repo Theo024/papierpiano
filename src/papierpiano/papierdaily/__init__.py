@@ -1,6 +1,9 @@
 import os
+import random
+import re
 import textwrap
 from datetime import datetime
+from html.parser import HTMLParser
 from zoneinfo import ZoneInfo
 
 import httpx
@@ -18,6 +21,19 @@ GRAPHICS_PATH = "assets/monochrome_daily/"
 
 # Largeur d'impression en pixels (48 colonnes en police A sur la TM-T20II).
 PRINT_WIDTH = 576
+
+# Écarte les événements historiques trop sombres (mort, guerre, catastrophes…).
+# Les motifs sont des radicaux : « exécut » attrape « exécution » et « exécuté ».
+HISTORY_BLOCKLIST = re.compile(
+    r"\b("
+    r"mort|mortel|décès|décéd|tué|tuée|tuer|tuent|tuerie|tueur|"
+    r"guerre|bataille|combat|massacre|attentat|assassin|meurtre|génocide|"
+    r"exécut|victime|catastrophe|séisme|tremblement de terre|explos|incendie|"
+    r"naufrage|épidémie|peste|choléra|famine|extermination|déport|bombard|"
+    r"fusillade|émeute|pendu|guillotin|noyé|noyade|crash|abattu"
+    r")",
+    re.IGNORECASE,
+)
 
 # Titres suivis en bourse : (ticker Yahoo Finance, libellé affiché)
 STOCKS = [
@@ -46,21 +62,105 @@ def fetch_stock(symbol):
     return closes, currency
 
 
-def fetch_history_events(month, day):
-    """Événements historiques marquants du jour via l'API Wikipédia FR."""
+# Sections de l'article du jour dont on tire les événements (titres de niveau 2).
+HISTORY_SECTIONS = ("Sciences et techniques", "Économie et société")
+
+
+class _EphemerideParser(HTMLParser):
+    """Extrait le texte de chaque puce de premier niveau d'une liste HTML.
+
+    Le contenu des balises « bruyantes » (appels de notes <sup> « [1] »,
+    légendes d'images <figcaption>, <style>) est ignoré.
+    """
+
+    SKIP_TAGS = {"sup", "figcaption", "style"}
+
+    def __init__(self):
+        super().__init__()
+        self.li_depth = 0
+        self.skip_depth = 0
+        self.buffer = []
+        self.items = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "li":
+            self.li_depth += 1
+            if self.li_depth == 1:
+                self.buffer = []
+        elif tag in self.SKIP_TAGS:
+            self.skip_depth += 1
+
+    def handle_endtag(self, tag):
+        if tag == "li":
+            if self.li_depth == 1:
+                self.items.append("".join(self.buffer))
+            self.li_depth = max(0, self.li_depth - 1)
+        elif tag in self.SKIP_TAGS:
+            self.skip_depth = max(0, self.skip_depth - 1)
+
+    def handle_data(self, data):
+        if self.li_depth >= 1 and self.skip_depth == 0:
+            self.buffer.append(data)
+
+
+def _wiki_parse(page, **params):
+    """Appelle l'API parse de Wikipédia FR et renvoie le JSON (ou None)."""
     response = httpx.get(
-        f"https://fr.wikipedia.org/api/rest_v1/feed/onthisday/selected/{month:02d}/{day:02d}",
+        "https://fr.wikipedia.org/w/api.php",
+        params={
+            "action": "parse",
+            "page": page,
+            "redirects": 1,
+            "format": "json",
+            **params,
+        },
         headers={"User-Agent": "papierpiano/1.0 (impression quotidienne perso)"},
         timeout=15,
         follow_redirects=True,
     )
     response.raise_for_status()
-    events = response.json().get("selected", [])
-    return [
-        (event["year"], event["text"])
-        for event in events
-        if event.get("year") and event.get("text")
+    payload = response.json()
+    return None if "error" in payload else payload
+
+
+def fetch_history_events(day, month_name):
+    """Événements du jour depuis l'article « <jour> <mois> » de Wikipédia FR.
+
+    On ne conserve que les sections définies par HISTORY_SECTIONS (ex.
+    « Sciences et techniques » et « Économie et société »). L'index d'une section
+    varie d'un jour à l'autre : on liste d'abord les sections pour retrouver
+    celui des titres voulus, puis on récupère le HTML de chacune. Les
+    redirections gèrent le cas « 1er ».
+    """
+    page = f"{day} {month_name}"
+    meta = _wiki_parse(page, prop="sections")
+    if meta is None:
+        return []
+
+    indices = [
+        section["index"]
+        for section in meta["parse"]["sections"]
+        if section["line"] in HISTORY_SECTIONS
     ]
+
+    events = []
+    for index in indices:
+        data = _wiki_parse(
+            page, prop="text", section=index, disablelimitreport=1
+        )
+        if data is None:
+            continue
+        parser = _EphemerideParser()
+        parser.feed(data["parse"]["text"]["*"])
+        for item in parser.items:
+            match = re.match(r"^\s*(\d{3,4})\s*:\s*(.+)$", item, re.S)
+            if not match:
+                continue
+            text = re.sub(r"\s+", " ", match.group(2)).strip()
+            events.append((int(match.group(1)), text))
+
+    events.sort(key=lambda event: event[0])
+    return events
 
 
 def collect_stocks():
@@ -445,18 +545,28 @@ def main():
             printer.textln(line)
 
     try:
-        history = fetch_history_events(now.month, now.day)
+        history = fetch_history_events(now.day, month_str.lower())
     except Exception:
         history = []
 
+    history = [event for event in history if not HISTORY_BLOCKLIST.search(event[1])]
+
     if history:
+        # L'événement le plus récent, plus un autre tiré au hasard, affichés
+        # dans l'ordre chronologique.
+        selected = [history[-1]]
+        others = history[:-1]
+        if others:
+            selected.append(random.choice(others))
+        selected.sort(key=lambda event: event[0])
+
         day_str = "1er" if now.day == 1 else str(now.day)
         printer.set_with_default(bold=True, underline=True)
         printer.textln(f"Ça s'est passé un {day_str} {month_str.lower()}")
         printer.ln()
         printer.set_with_default()
 
-        for year, text in history[:2]:
+        for year, text in selected:
             print_wrapped(
                 f"{year} — {text}",
                 initial_indent=" " * 4 + "» ",
