@@ -21,7 +21,7 @@ RUN npm run build
 FROM python:3.14-slim@sha256:cea0e6040540fb2b965b6e7fb5ffa00871e632eef63719f0ea54bca189ce14a6 AS backend-builder
 
 # Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest@sha256:cf4eedcaa81655197f625739489effcbe71b61ceb1506f332c3facae5deceded /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:latest@sha256:069a51314a7bb6031777a9273205fe1b0b19e914ef418207d1338b268df641dd /uv /uvx /usr/local/bin/
 
 # Set working directory
 WORKDIR /app
