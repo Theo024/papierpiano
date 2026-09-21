@@ -18,7 +18,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Build the Python API
-FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6 AS backend-builder
+FROM python:3.14-slim@sha256:caaf356f40667c496d405780745b9ac25771c189a51dfcc42430d531ea09f8a2 AS backend-builder
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest@sha256:10787c682e4184e4f290de1171fd4703dc63de99221f10fe1c99002ce7fa9acc /uv /uvx /usr/local/bin/
@@ -40,7 +40,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable
 
 # Stage 3: Production runtime
-FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6 AS runtime
+FROM python:3.14-slim@sha256:caaf356f40667c496d405780745b9ac25771c189a51dfcc42430d531ea09f8a2 AS runtime
 
 # Create non-root user
 RUN groupadd -g 1000 appuser && \
